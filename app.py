@@ -4,10 +4,9 @@ from flask import Flask,request,app,jsonify,url_for,render_template
 import numpy as np
 import pandas as pd
 
-app = Flask(__name__) # starting point of the application
+app = Flask(__name__) # starting point of the application name of the app
 regmodel = pickle.load(open('regmodel.pkl','rb')) # load the model
-scalar = pickle.load(open('scalar.pkl','rb'))
-
+scalar = pickle.load(open('scalar.pkl','rb')) # loading the scalar tranform
 
 @app.route('/')   # redirecting to the home page
 def home():
@@ -28,6 +27,19 @@ def predict_api():
 
     print(output[0])
     return jsonify(output[0])
+
+@app.route('/predict',methods=['POST'])
+def predict():
+
+    data = [float(x) for x in request.form.values()]
+    final_inp = scalar.transform(np.array(data).reshape(1,-1))
+    print(final_inp)
+
+    output = regmodel.predict(final_inp)[0]
+
+    return render_template("home.html",prediction_text="The House Price Predicted is {}".format(output))
+
+
 
 
 if __name__=="__main__":
